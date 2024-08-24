@@ -29,15 +29,14 @@ class UserAndUserProfileTest extends TestCase
         // user.id=1のUserをUserProfileとjoinして取得
         $target_user_id = 1;
         $user = User::join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
+            ->whereNotNull('user_profiles.address')
             ->findOrfail($target_user_id);
 
         // UserProfileを取得する
         $user_profile = $user->userProfile;
 
         dump(DB::getQueryLog());
-        dump('$taget_user_id:'.  $target_user_id);
-        dump('$user->id:'. $user->id);
-        dump('$user_profile->user_id:'. $user_profile->user_id);
+        self::outputUserAndUserProfile($user, $user_profile);
 
         // user_idが一致しないことを検証
         $this::assertNotEquals($target_user_id, $user_profile->user_id);
@@ -48,16 +47,15 @@ class UserAndUserProfileTest extends TestCase
     {
         // user.id=1のUserをUserProfileとjoinして取得
         $target_user_id = 1;
-        $user = User::select(['users.id'])->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
+        $user = User::select(['users.id', 'users.name', 'users.email'])->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
+            ->whereNotNull('user_profiles.address')
             ->findOrFail($target_user_id);
 
         // UserProfileを取得する
         $user_profile = $user->userProfile;
 
         dump(DB::getQueryLog());
-        dump('$taget_user_id:'.  $target_user_id);
-        dump('$user->id:'. $user->id);
-        dump('$user_profile->user_id:'. $user_profile->user_id);
+        self::outputUserAndUserProfile($user, $user_profile);
 
         // user_idが一致することを検証
         $this::assertEquals($target_user_id, $user_profile->user_id);
@@ -95,4 +93,16 @@ class UserAndUserProfileTest extends TestCase
         ]);
     }
 
+    private function outputUserAndUserProfile(User $user, UserProfile $user_profile)
+    {
+        dump('###User###');
+        dump('id:'. $user->id);
+        dump('name:'. $user->name);
+        dump('email:'. $user->email);
+
+        dump('###UserProfile###');
+        dump('id:'. $user_profile->id);
+        dump('user_id:'. $user_profile->user_id);
+        dump('address:'. $user_profile->address);
+    }
 }
