@@ -18,9 +18,8 @@ class UserAndUserProfileTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        DB::disableQueryLog();
-        self::insertInitialData();
         DB::enableQueryLog();
+        self::insertInitialData();
     }
 
     #[Test]
@@ -50,6 +49,27 @@ class UserAndUserProfileTest extends TestCase
         $user = User::select(['users.id', 'users.name', 'users.email'])->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->whereNotNull('user_profiles.address')
             ->findOrFail($target_user_id);
+
+        // UserProfileを取得する
+        $user_profile = $user->userProfile;
+
+        dump(DB::getQueryLog());
+        self::outputUserAndUserProfile($user, $user_profile);
+
+        // user_idが一致することを検証
+        $this::assertEquals($target_user_id, $user_profile->user_id);
+    }
+
+    #[Test]
+    public function user_profilesをwithで指定すればOK()
+    {
+        // user.id=1のUserをUserProfileとjoinして取得
+        $target_user_id = 1;
+        $user = User::with([
+            'userProfile' => function ($query) {
+                $query->whereNotNull('address');
+            }
+        ])->findOrFail($target_user_id);
 
         // UserProfileを取得する
         $user_profile = $user->userProfile;
